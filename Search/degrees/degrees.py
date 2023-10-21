@@ -94,18 +94,27 @@ def shortest_path(source, target):
     queue = QueueFrontier()
     visited = []
 
-    queue.add(Node(state= (source,[]),parent= None, action= None))
+    queue.add(Node(state= source,parent= None, action= None))
+
     while not queue.empty():
-        (person, path) = queue.remove().state
-        neighbors = neighbors_for_person(person)
+        node = queue.remove()
+        neighbors = neighbors_for_person(node.state)
+
         for (movie, neighbor) in neighbors:
             if neighbor == target:
-                return  path + [(movie, neighbor)]
+                parent = node
+                path = [(movie, neighbor)]
+
+                while parent and parent.parent:
+                    path.append((parent.action, parent.state))
+                    parent = parent.parent
+
+                path.reverse()
+                return path
             
             if neighbor not in visited:
-                queue.add(Node(state=(neighbor, path + [(movie, neighbor)]), parent= None, action= None))
+                queue.add(Node(state= neighbor, parent= node, action= movie))
                 visited.append(neighbor)
-    
 
     return None
 
