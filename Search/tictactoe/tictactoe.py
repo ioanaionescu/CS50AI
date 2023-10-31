@@ -9,7 +9,7 @@ import random
 X = "X"
 O = "O"
 EMPTY = None
-ACCURACY = 99999999
+ACCURACY = 999999
 
 def initial_state():
     """
@@ -94,7 +94,7 @@ def minimax(board):
     Returns the optimal action for the current player on the board. Does not take into account
     cost (as in it might choose to win in 2 moves even though a 1-move win is possible)
     """
-    # Optimisation: always start first corner, spare the calculations
+    # [Optimisation]: Always start first corner, spare the calculations
     if board == initial_state():
         return (0, 0)
 
@@ -102,12 +102,12 @@ def minimax(board):
     func_map = {X: maxValue, O: minValue}
     
     # Using the dictionary to get the value function and then fetch the action
-    _, action = func_map[player(board)](board, ACCURACY)
+    _, action = func_map[player(board)](board, ACCURACY, float('-inf'), float('inf'))
 
     return action
 
 
-def minValue(board, depth):
+def minValue(board, depth, alpha, beta):
     """
     Calculate the optimal value and corresponding action for the current player 
     given the board state. This function assumes the current player aims to minimize 
@@ -125,15 +125,18 @@ def minValue(board, depth):
     random.shuffle(available_actions)
 
     for action in available_actions:
-        score, _ = maxValue(result(board, action), depth - 1)
+        score, _ = maxValue(result(board, action), depth - 1, alpha, beta)
         if v > score:
             v = score
             best_action = action
-
+        # [Optimisation]: Update beta value for alpha-beta pruning
+        beta = min(beta, v)
+        if beta <= alpha:
+            break
     return v, best_action
 
 
-def maxValue(board, depth):
+def maxValue(board, depth, alpha, beta):
     """
     Calculate the optimal value and corresponding action for the current player 
     given the board state. This function assumes the current player aims to maximize 
@@ -151,9 +154,13 @@ def maxValue(board, depth):
     random.shuffle(available_actions)
 
     for action in available_actions:
-        score, _ = minValue(result(board, action), depth - 1)
+        score, _ = minValue(result(board, action), depth - 1, alpha, beta)
         if v < score:
             v = score
             best_action = action
+        # [Optimisation]: Update alpha value for alpha-beta pruning
+        alpha = max(alpha, v)
+        if beta <= alpha:
+            break
 
     return v, best_action
